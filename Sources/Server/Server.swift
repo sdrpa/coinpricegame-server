@@ -17,10 +17,6 @@ public struct Server {
    }
    
    public func run() {
-      let envVars = ProcessInfo.processInfo.environment
-      let portString: String = envVars["PORT"] ?? envVars["CF_INSTANCE_PORT"] ??  envVars["VCAP_APP_PORT"] ?? "8182"
-      let port = Int(portString) ?? 8182
-
       var cors: CORS {
          let options = Options(allowedOrigin: .all,
                                maxAge: 5)
@@ -37,8 +33,7 @@ public struct Server {
       router.all("/",  middleware: cors, rate)
       router.post("*", middleware: BodyLimitMiddleware(), BodyParser())
 
-      router.get("/",        handler: Server.main)
-
+      router.get("/ping",             handler: Server.ping)
       router.post("/submit",          handler: Server.submit)
       router.get("/prediction/tx",    handler: Server.predictionWithTransactionId)
       router.get("/prediction/price", handler: Server.predictionWithPrice)
@@ -51,11 +46,16 @@ public struct Server {
       // http://www.kitura.io/en/resources/tutorials/ssl.html
       let server = HTTP.createServer()
       server.delegate = router
+
+      let envVars = ProcessInfo.processInfo.environment
+      let portString: String = envVars["PORT"] ?? envVars["CF_INSTANCE_PORT"] ??  envVars["VCAP_APP_PORT"] ?? "8182"
+      let port = Int(portString) ?? 8182
+      
       do {
-         try server.listen(on: 8182)
+         try server.listen(on: port)
          ListenerGroup.waitForListeners()
       } catch {
-         print("Could not listen on port 8080: \(error)")
+         print("Could not listen on port \(port): \(error)")
       }
    }
 }
@@ -77,8 +77,8 @@ extension Server {
 }
 
 extension Server {
-   static func main(request: RouterRequest, response: RouterResponse, next: () -> Void) {
-      response.status(.OK)
+   static func ping(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+      response.status(.OK).send("OK")
       next()
    }
 

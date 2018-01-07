@@ -16,6 +16,8 @@ sudo -u postgres createuser --createdb $USER
 sudo -u postgres createdb app
 sudo -u postgres psql -d app -c "alter user "$USER" with password 'password';"
 
+psql -d app -U <USERNAME> -W
+
 sudo apt-get install libssl-dev // Required by Cryptor
 sudo apt-get install libpq-dev  // Required by SwiftKueryPostgreSQL
 
