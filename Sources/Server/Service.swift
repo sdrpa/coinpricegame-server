@@ -37,7 +37,7 @@ final class Service {
             try broadcast(price: price)
             try DB.save(price: price, date: Date())
          } catch let e{
-            print(e.localizedDescription)
+            Log.error(e.localizedDescription)
          }
       }
 
