@@ -6,8 +6,24 @@ import SwiftKueryPostgreSQL
 import Then
 
 struct DB {
-   enum err: Error {
-      case fatal(String?)
+}
+
+extension QueryError: LocalizedError {
+   public var errorDescription: String? {
+      switch self {
+      case .connection(let error):
+         return error
+      case .noResult(let error):
+         return error
+      case .databaseError(let error):
+         return error
+      case .syntaxError(let error):
+         return error
+      case .unsupported(let error):
+         return error
+      case .transactionError(let error):
+         return error
+      }
    }
 }
 
