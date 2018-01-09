@@ -4,12 +4,14 @@ import Dispatch
 import Foundation
 import KituraWebSocket
 import LoggerAPI
+import KituraCache
 
 final class Service {
-   private let delay = 1.0
-   private let timer = DispatchSource.makeTimerSource()
    private let bittrex = Bittrex()
-   private var connections = [String: WebSocketConnection]()
+
+   private let delay = 1.0
+   private let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
+   private let cache = KituraCache(defaultTTL: 0, checkFrequency: 600)
 
    init() {
       timer.setEventHandler() { [weak self] in
@@ -19,8 +21,11 @@ final class Service {
                "last": Decimal(p.last * p.btc, fractionDigits: 4)]
             do {
                let data = try JSONEncoder().encode(dictionary)
-               if let conns =  self?.connections {
-                  for (_, connection) in conns {
+               guard let keys = self?.cache.keys() as? [String] else {
+                  return
+               }
+               for key in keys {
+                  if let connection = self?.cache.object(forKey: key) as? WebSocketConnection {
                      connection.send(message: data, asBinary: false)
                   }
                }
@@ -56,16 +61,16 @@ final class Service {
 // http://www.websocket.org/echo.html
 extension Service: WebSocketService {
    func connected(connection: WebSocketConnection) {
-      connections[connection.id] = connection
+      cache.setObject(connection, forKey: connection.id)
    }
 
    func disconnected(connection: WebSocketConnection, reason: WebSocketCloseReasonCode) {
-      connections.removeValue(forKey: connection.id)
+      cache.removeObject(forKey: connection.id)
    }
 
    func received(message: Data, from: WebSocketConnection) {
       from.close(reason: .invalidDataType, description: "Server only accepts text messages.")
-      connections.removeValue(forKey: from.id)
+      cache.removeObject(forKey: from.id)
    }
 
    func received(message: String, from: WebSocketConnection) {

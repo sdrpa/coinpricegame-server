@@ -8,6 +8,7 @@ let package = Package(
    dependencies: [
       .package(url: "https://github.com/IBM-Swift/Kitura.git", from: "2.1.0"),
       .package(url: "https://github.com/IBM-Swift/Kitura-WebSocket", from: "1.0.0"),
+      .package(url: "https://github.com/IBM-Swift/Kitura-Cache", from: "2.0.0"),
       .package(url: "https://github.com/IBM-Swift/Swift-Kuery-PostgreSQL", from: "1.0.0"),
       .package(url: "https://github.com/IBM-Swift/Swift-SMTP", from: "1.1.3"),
       .package(url: "https://github.com/IBM-Swift/SwiftyJSON", from: "17.0.0")
@@ -25,6 +26,7 @@ let package = Package(
             "Kitura",
             "Kitura-WebSocket",
             "KituraCORS",
+            "KituraCache",
             "SwiftKueryPostgreSQL",
             "SwiftSMTP",
             "SwiftyJSON",
