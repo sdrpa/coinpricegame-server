@@ -7,14 +7,14 @@ extension URLRequest {
       self.init(path: path, method: method, params: [:])
    }
 
-   init(path: String, method: String, params: [String: String]) {
+   init(path: String, method: String, params: [String: String], timeoutInterval: TimeInterval = 1.0) {
       guard var url = URL(string: path) else {
          fatalError()
       }
       url = url.appendingQueryParameters(params)
       self = URLRequest(url: url)
       self.httpMethod = method
-      self.timeoutInterval = 1.0
+      self.timeoutInterval = timeoutInterval
    }
 }
 

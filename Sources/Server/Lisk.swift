@@ -35,7 +35,8 @@ extension Lisk {
    func transaction(id: String) throws -> Transaction {
       let request = URLRequest(path: Lisk.basePath + "/transactions/get",
                                method: "GET",
-                               params: ["id": id])
+                               params: ["id": id],
+                               timeoutInterval: 10.0)
       let transaction = try await(gettransaction(request: request))
       return transaction
    }
