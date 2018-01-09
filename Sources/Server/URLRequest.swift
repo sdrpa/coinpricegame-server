@@ -14,6 +14,7 @@ extension URLRequest {
       url = url.appendingQueryParameters(params)
       self = URLRequest(url: url)
       self.httpMethod = method
+      self.timeoutInterval = 1.0
    }
 }
 
