@@ -4,6 +4,7 @@
 import Foundation
 import Kitura
 import KituraNet
+import KituraCache
 
 typealias By = (_ request: RouterRequest) -> String
 typealias NextFunc = () -> Void
@@ -42,7 +43,7 @@ class RateLimitMiddleware: RouterMiddleware {
    let whitelist: WhiteList
    let defaultLimit: Limit
 
-   var store: [String: Limit] = [:]
+   let store = KituraCache(defaultTTL: 0, checkFrequency: 600) // [String: Limit]
 
    // 150 req/hour default
    init(by: @escaping By = defaultByFunc, total: Int = 150, expire: Int = 60 * 60, onRateLimited: @escaping RouterHandler = defaultOnRateLimited, whitelist: @escaping WhiteList = defaultWhitelist) {
@@ -64,7 +65,7 @@ class RateLimitMiddleware: RouterMiddleware {
       }
 
       let key = "\(self.by(request))"
-      var limit = store[key] ?? defaultLimit
+      var limit = store.object(forKey: key) as? Limit ?? defaultLimit
 
       let t = now()
       if t > limit.reset {
@@ -72,8 +73,8 @@ class RateLimitMiddleware: RouterMiddleware {
          limit.remaining = total
       }
       limit.remaining = max(limit.remaining - 1, -1)
-      print(limit)
-      store[key] = limit
+      //print(limit)
+      store.setObject(limit, forKey: key)
 
       response.headers.append("X-RateLimit-Limit", value: "\(total)")
       response.headers.append("X-RateLimit-Reset", value: "\(ceil(Double(limit.reset) / 1000))")
