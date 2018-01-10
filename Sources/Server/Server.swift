@@ -12,7 +12,30 @@ public struct Server {
    var service = Service()
 
    public init() {
-      let logger = APILogger(.info)
+      // https://github.com/IBM-Swift/HeliumLogger/issues/49
+      struct StandardError: TextOutputStream {
+         func write(_ text: String) {
+            guard let data = text.data(using: .utf8) else {
+               return
+            }
+            FileHandle.standardError.write(data)
+            // Log to file.
+            let filename = "coinpricegame.log"
+            let cwd = FileManager.default.currentDirectoryPath
+            let fileURL = URL(fileURLWithPath: cwd).appendingPathComponent(filename)
+            do {
+               try data.appendToURL(fileURL: fileURL)
+            } catch let e {
+               guard let data = e.localizedDescription.data(using: String.Encoding.utf8) else {
+                  return
+               }
+               FileHandle.standardError.write(data)
+            }
+         }
+      }
+
+      let standardError = StandardError()
+      let logger = APIStreamLogger(.info, outputStream: standardError)
       Log.logger = logger
    }
    
@@ -197,6 +220,21 @@ extension Server {
       } catch let e {
          Log.error(e.localizedDescription)
          response.status(.unprocessableEntity).send(e.localizedDescription)
+      }
+   }
+}
+
+fileprivate extension Data {
+   func appendToURL(fileURL: URL) throws {
+      if let fileHandle = try? FileHandle(forWritingTo: fileURL) {
+         defer {
+            fileHandle.closeFile()
+         }
+         fileHandle.seekToEndOfFile()
+         fileHandle.write(self)
+      }
+      else {
+         try write(to: fileURL, options: .atomic)
       }
    }
 }

@@ -3,4 +3,5 @@
 *.xcodeproj
 Package.resolved
 Sources/Server/Config.swift
+coinpricegame.log
 
