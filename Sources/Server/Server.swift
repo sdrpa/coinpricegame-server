@@ -70,6 +70,14 @@ public struct Server {
       let server = HTTP.createServer()
       server.delegate = router
 
+      #if os(Linux)
+         do {
+            server.sslConfig = try certChain()
+         } catch let e {
+            Log.error(e.localizedDescription)
+         }
+      #endif
+
       let envVars = ProcessInfo.processInfo.environment
       let portString: String = envVars["PORT"] ?? envVars["CF_INSTANCE_PORT"] ??  envVars["VCAP_APP_PORT"] ?? "8182"
       let port = Int(portString) ?? 8182
